@@ -1,0 +1,61 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ddns-route53-config
+  labels:
+    app: ddns-route53
+data:
+  ddns-route53.yaml: |
+    route53:
+      hostedZoneID: "Removed"
+      recordsSet:
+        - name: "qth.nh6z.net."
+          type: "A"
+          ttl: 300
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddns-route53
+  labels:
+    app: ddns-route53
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ddns-route53
+  template:
+    metadata:
+      labels:
+        app: ddns-route53
+    spec:
+      containers:
+      - name: ddns-route53
+        image: crazymax/ddns-route53
+        volumeMounts:
+        - name: config-dir
+          mountPath: /etc/ddns-route53
+        env:
+        - name: TZ
+          value: America/Los_Angeles
+        - name: SCHEDULE
+          value: "*/30 * * * *"
+        - name: LOG_LEVEL
+          value: info
+        - name: LOG_JSON
+          value: "false"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: ddns-route53-credentials
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ddns-route53-credentials
+              key: secret-access-key
+      volumes:
+      - name: config-dir
+        configMap:
+          name: ddns-route53-config
