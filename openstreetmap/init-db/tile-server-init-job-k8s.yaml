@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tile-server-downloads
+  labels:
+    app: aredn-tiles
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 15Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aredn-tiles-init-db
+  labels:
+    app: aredn-tiles
+    tier: database
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: wait-for-db
+        image: groundnuty/k8s-wait-for:v1.3
+        imagePullPolicy: Always
+        args:
+          - "pod"
+          - "-lapp=aredn-tiles,tier=database"
+      containers:
+      - name: aredn-tiles-db-init
+        image: mcdermj/osm-init-db
+        env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: aredn-tiles-db-credentials
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: aredn-tiles-db-credentials
+                key: username
+          - name: PGHOST
+            value: aredn-tiles-postgis
+          - name: DOWNLOAD_URL
+            value: https://download.geofabrik.de/north-america/us-west-latest.osm.pbf
+            # value: https://download.geofabrik.de/north-america-latest.osm.pbf
+            # value: http://download.geofabrik.de/north-america/us/oregon-latest.osm.pbf
+        volumeMounts:
+          - mountPath: /downloads
+            name: downloads
+      volumes:
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: tile-server-downloads

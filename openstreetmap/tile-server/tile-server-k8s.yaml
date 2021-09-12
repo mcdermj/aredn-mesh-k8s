@@ -1,0 +1,303 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tile-server-data
+  labels:
+    app: aredn-tiles
+    tier: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 250Gi
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: aredn-tiles-db-config
+  labels:
+    app: aredn-tiles
+    tier: database
+data:
+  20_tiles.sql: |
+    CREATE EXTENSION IF NOT EXISTS hstore;
+    CREATE EXTENSION IF NOT EXISTS postgis;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aredn-tiles-postgis
+  labels:
+    app: aredn-tiles
+    tier: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aredn-tiles
+      tier: database
+  template:
+    metadata:
+      labels:
+        app: aredn-tiles
+        tier: database
+    spec:
+      containers:
+      - name: tile-server
+        imagePullPolicy: Always
+        image: postgis/postgis
+        args: [
+            "-c", "shared_buffers=1GB",
+            "-c", "work_mem=50MB",
+            "-c", "maintenance_work_mem=10GB",
+            "-c", "autovacuum_work_mem=2GB",
+            "-c", "wal_level=minimal",
+            "-c", "checkpoint_timeout=60min",
+            "-c", "max_wal_size=10GB",
+            "-c", "checkpoint_completion_target=0.9",
+            "-c", "max_wal_senders=0",
+            "-c", "random_page_cost=1.0"
+        ]
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aredn-tiles-db-credentials
+              key: password
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aredn-tiles-db-credentials
+              key: password
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: aredn-tiles-db-credentials
+              key: username
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: aredn-tiles-db-credentials
+              key: username
+        - name: POSTGRES_DB
+          value: gis
+        - name: PGDATABASE
+          value: gis
+        - name: POSTGRES_INITDB_ARGS
+          value: "--locale C.UTF-8"
+        volumeMounts:
+        - name: tile-server-data
+          mountPath: /var/lib/postgresql/data
+          subPath: data
+        - name: tile-server-db-init
+          mountPath: /docker-entrypoint-initdb.d
+        - name: dshm
+          mountPath: /dev/shm
+        ports:
+          - containerPort: 5432
+        readinessProbe:
+          exec:
+            command: [ "psql", "-c", "SELECT 1" ]
+          initialDelaySeconds: 15
+          timeoutSeconds: 2
+        livenessProbe:
+          exec:
+              command: [ "psql", "-c", "SELECT 1" ]
+          initialDelaySeconds: 45
+          timeoutSeconds: 2
+      volumes:
+      - name: tile-server-data
+        persistentVolumeClaim:
+          claimName: tile-server-data
+      - name: tile-server-db-init
+        configMap:
+          name: aredn-tiles-db-config
+      - name: dshm
+        emptyDir:
+          medium: Memory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aredn-tiles-postgis
+  labels:
+    app: aredn-tiles-postgis
+    tier: database
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: aredn-tiles
+    tier: database
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aredn-memcache
+  labels:
+    app: aredn-tiles
+    tier: caching
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: aredn-tiles
+      tier: caching
+  template:
+    metadata:
+      labels:
+        app: aredn-tiles
+        tier: caching
+    spec:
+      containers:
+      - name: memcache
+        image: memcached
+        args: [ "-m", "256" ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aredn-tiles-memcache
+  labels:
+    app: aredn-tiles
+    tier: caching
+spec:
+  ports:
+    - name: memcache
+      protocol: TCP
+      port: 11211
+      targetPort: 11211
+  selector:
+    app: aredn-tiles
+    tier: caching
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: aredn-tiles-tilestache
+  labels:
+    app: aredn-tiles
+    tier: application
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: aredn-tiles
+      tier: application
+  serviceName: aredn-tiles-tilestache
+  template:
+    metadata:
+      labels:
+        app: aredn-tiles
+        tier: application
+    spec:
+      containers:
+      - name: tile-server
+        image: mcdermj/osm-tilestache
+        imagePullPolicy: Always
+        env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: aredn-tiles-db-credentials
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: aredn-tiles-db-credentials
+                key: username
+          - name: PGHOST
+            value: aredn-tiles-postgis
+        volumeMounts:
+        - name: aredn-tiles-cache
+          mountPath: /var/lib/tile-cache
+        ports:
+          - containerPort: 80
+      volumes:
+      - name: aredn-tiles-cache
+        persistentVolumeClaim:
+          claimName: tile-server-tiles
+  volumeClaimTemplates:
+  - metadata:
+      name: aredn-tiles-cache
+      labels:
+        app: aredn-tiles
+        tier: application
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aredn-tiles-tilestache
+  labels:
+    app: aredn-tiles
+    tier: application
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: aredn-tiles
+    tier: application
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: aredn-tiles-tilestache
+  labels:
+    app: aredn-tiles
+    tier: application
+  annotations:
+    traefik.ingress.kubernetes.io/custom-response-headers: "Access-Control-Allow-Origin:*||Access-Control-Allow-Methods:GET,POST,OPTIONS||Access-Control-Allow-Headers:DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range||Access-Control-Expose-Headers:Content-Length,Content-Range"
+spec:
+  rules:
+    - host: nh6z-tiles.local.mesh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aredn-tiles-tilestache
+                port:
+                  number: 80
+    - host: tiles.nh6z.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aredn-tiles-tilestache
+                port:
+                  number: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tile-server-downloads
+  labels:
+    app: aredn-tiles
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 15Gi
