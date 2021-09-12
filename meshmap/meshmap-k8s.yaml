@@ -1,0 +1,816 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: meshmap-sql-init
+  labels:
+    app: meshmap
+    tier: database
+data:
+  node_map.sql: |
+    /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+
+    /*!40101 SET NAMES utf8 */;
+
+    /*!50503 SET NAMES utf8mb4 */;
+
+    /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS,
+    FOREIGN_KEY_CHECKS=0 */;
+
+    /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+
+
+
+    -- Dumping database structure for node_map
+
+    CREATE DATABASE IF NOT EXISTS `node_map` /*!40100 DEFAULT CHARACTER SET utf8
+    COLLATE utf8_unicode_ci */;
+
+    USE `node_map`;
+
+
+    -- Dumping structure for table node_map.hosts_ignore
+
+    CREATE TABLE IF NOT EXISTS `hosts_ignore` (
+      `ip` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `name` varchar(70) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `reason` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `timestamp` datetime DEFAULT NULL,
+      UNIQUE KEY `name_2` (`name`),
+      KEY `name` (`name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+    COMMENT='Hostnames to ignore because they are probably not AREDN nodes.';
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for table node_map.map_info
+
+    CREATE TABLE IF NOT EXISTS `map_info` (
+      `id` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+      `table_or_script_name` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `table_records_num` int(11) DEFAULT NULL,
+      `table_update_num` int(11) NOT NULL DEFAULT 0,
+      `table_last_update` datetime DEFAULT NULL,
+      `script_last_run` datetime DEFAULT NULL,
+      `currently_running` int(11) DEFAULT 0 COMMENT 'tells us if getNodeInfo is currently running or not',
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+    COMMENT='Keeping track of some things about the map';
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for table node_map.marker_info
+
+    CREATE TABLE IF NOT EXISTS `marker_info` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `description` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `type` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+      `lat` double NOT NULL,
+      `lon` double NOT NULL,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `id` (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8
+    COLLATE=utf8_unicode_ci;
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for table node_map.node_info
+
+    CREATE TABLE IF NOT EXISTS `node_info` (
+      `node` varchar(70) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `wlan_ip` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `last_seen` datetime DEFAULT NULL,
+      `uptime` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `loadavg` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `model` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `firmware_version` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `ssid` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `channel` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `chanbw` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `tunnel_installed` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `active_tunnel_count` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `lat` double DEFAULT NULL,
+      `lon` double DEFAULT NULL,
+      `wifi_mac_address` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `api_version` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `board_id` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `firmware_mfg` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `grid_square` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `lan_ip` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `services` varchar(2048) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `location_fix` int(11) DEFAULT 0,
+      UNIQUE KEY `node` (`node`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+    COMMENT='Information about the nodes\r\ntaken from sysinfo.json that is on
+    every node.';
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for table node_map.removed_nodes
+
+    CREATE TABLE IF NOT EXISTS `removed_nodes` (
+      `node` varchar(70) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `wlan_ip` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `last_seen` datetime DEFAULT NULL,
+      `uptime` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `loadavg` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `model` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `firmware_version` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `ssid` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `channel` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `chanbw` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `tunnel_installed` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `active_tunnel_count` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `lat` double DEFAULT NULL,
+      `lon` double DEFAULT NULL,
+      `wifi_mac_address` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `api_version` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `board_id` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `firmware_mfg` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `grid_square` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `lan_ip` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `services` varchar(2048) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `time_removed` datetime DEFAULT NULL,
+      UNIQUE KEY `node` (`node`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='A
+    place to put old nodes';
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for table node_map.topology
+
+    CREATE TABLE IF NOT EXISTS `topology` (
+      `node` varchar(70) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `nodelat` double DEFAULT NULL,
+      `nodelon` double DEFAULT NULL,
+      `linkto` varchar(70) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `linklat` double DEFAULT NULL,
+      `linklon` double DEFAULT NULL,
+      `cost` double DEFAULT NULL,
+      `distance` double DEFAULT NULL,
+      `bearing` double DEFAULT NULL,
+      `lastupd` datetime DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for table node_map.users
+
+    CREATE TABLE IF NOT EXISTS `users` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `admin` int(1) DEFAULT 0,
+      `user` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `passwd` varchar(256) COLLATE utf8_unicode_ci DEFAULT NULL,
+      `last_login` datetime DEFAULT NULL,
+      KEY `id` (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8
+    COLLATE=utf8_unicode_ci COMMENT='a place to put users for the admin
+    page(s)';
+
+
+    -- Data exporting was unselected.
+
+    -- Dumping structure for trigger node_map.node_info_after_insert
+
+    SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
+
+    DELIMITER //
+
+    CREATE TRIGGER `node_info_after_insert` AFTER INSERT ON `node_info` FOR EACH
+    ROW BEGIN
+
+    INSERT INTO map_info (id, table_or_script_name, table_records_num,
+    table_last_update)
+
+    VALUES ('NODEINFO', 'node_info', (SELECT COUNT(*) FROM node_info), NOW())
+
+    ON DUPLICATE KEY UPDATE id = 'NODEINFO', table_or_script_name = 'node_info',
+    table_records_num = (SELECT COUNT(*) FROM node_info), table_last_update =
+    NOW();
+
+    END//
+
+    DELIMITER ;
+
+    SET SQL_MODE=@OLDTMP_SQL_MODE;
+
+
+    -- Dumping structure for trigger node_map.node_info_after_update
+
+    SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='';
+
+    DELIMITER //
+
+    CREATE TRIGGER `node_info_after_update` AFTER UPDATE ON `node_info` FOR EACH
+    ROW BEGIN
+
+    INSERT INTO map_info (id, table_or_script_name, table_records_num,
+    table_last_update)
+
+    VALUES ('NODEINFO', 'node_info', (SELECT COUNT(*) FROM node_info), NOW())
+
+    ON DUPLICATE KEY UPDATE id = 'NODEINFO', table_or_script_name = 'node_info',
+    table_records_num = (SELECT COUNT(*) FROM node_info), table_last_update =
+    NOW();
+
+    END//
+
+    DELIMITER ;
+
+    SET SQL_MODE=@OLDTMP_SQL_MODE;
+
+
+    -- Dumping structure for trigger node_map.topology_after_insert
+
+    SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='';
+
+    DELIMITER //
+
+    CREATE TRIGGER `topology_after_insert` AFTER INSERT ON `topology` FOR EACH
+    ROW BEGIN
+
+    -- thanks go to K6GSE for making this trigger much cleaner and easier to
+    read
+     IF (SELECT count(*) FROM map_info WHERE id='LINKINFO') =0 THEN
+      INSERT INTO map_info (id, table_or_script_name, table_records_num, table_last_update)
+       VALUES ('LINKINFO', 'topology', (SELECT COUNT(*) FROM topology), NOW());
+    -- ON DUPLICATE KEY UPDATE id = 'LINKINFO', table_or_script_name =
+    'topology', table_records_num = (SELECT COUNT(*) FROM topology),
+    table_last_update = NOW();
+     ELSE
+      UPDATE map_info SET table_records_num = (SELECT count(*) FROM topology), table_last_update = NOW() WHERE id= 'LINKINFO';
+    END IF;
+
+    -- prune the hosts_ignore table
+
+    -- clear 404 errors after 26 hours
+
+    -- hopefully the user will update
+
+    -- also remove no_route errors after 90 min
+
+    -- PHP controlled now
+
+    -- DELETE FROM hosts_ignore WHERE HOUR(TIMEDIFF(NOW(),
+    hosts_ignore.timestamp)) > 26 AND hosts_ignore.reason = '404';
+
+    -- DELETE FROM hosts_ignore WHERE TIMESTAMPDIFF(MINUTE,
+    hosts_ignore.timestamp, NOW()) > 90 AND hosts_ignore.reason = 'no_route';
+
+    -- DELETE FROM hosts_ignore WHERE TIMESTAMPDIFF(MINUTE,
+    hosts_ignore.timestamp, NOW()) > 30 AND hosts_ignore.reason = 'refused';
+
+    END//
+
+    DELIMITER ;
+
+    SET SQL_MODE=@OLDTMP_SQL_MODE;
+
+
+    -- Dumping structure for trigger node_map.topology_get_latlons_brg_dist
+
+    SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='';
+
+    DELIMITER //
+
+    CREATE TRIGGER `topology_get_latlons_brg_dist` BEFORE INSERT ON `topology`
+    FOR EACH ROW BEGIN
+
+
+    -- get locations and names for each end of the link
+
+    IF NEW.node IS NOT NULL THEN
+     SET NEW.nodelat = (SELECT lat FROM node_info WHERE wlan_ip = NEW.node AND (lat IS NOT NULL && lat != 0 && lat != 0.00));
+     SET NEW.nodelon = (SELECT lon FROM node_info WHERE wlan_ip = NEW.node AND (lon IS NOT NULL && lon != 0 && lon != 0.00));
+     SET NEW.node = (SELECT node FROM node_info WHERE wlan_ip = NEW.node);
+    END IF;
+
+    IF NEW.linkto IS NOT NULL THEN
+     SET NEW.linklat = (SELECT lat FROM node_info WHERE wlan_ip = NEW.linkto AND (lat IS NOT NULL && lat != 0 && lat != 0.00));
+     SET NEW.linklon = (SELECT lon FROM node_info WHERE wlan_ip = NEW.linkto AND (lon IS NOT NULL && lon != 0 && lon != 0.00));
+     SET NEW.linkto = (SELECT node FROM node_info WHERE wlan_ip = NEW.linkto);
+    END IF;
+
+
+    -- figure out distance and bearing
+
+
+    SET NEW.bearing =
+    round(mod(degrees(atan2(sin(radians(NEW.linklon)-radians(NEW.nodelon))*cos(radians(NEW.linklat)),
+    cos(radians(NEW.nodelat))*sin(radians(NEW.linklat))-sin(radians(NEW.nodelat))*cos(radians(NEW.linklat))*cos(radians(NEW.linklon)-radians(NEW.nodelon))))
+    + 360,360),1);
+
+    SET NEW.distance =
+    round(2*asin(sqrt(pow(sin((radians(NEW.linklat)-radians(NEW.nodelat))/2),2)+cos(radians(NEW.nodelat))*cos(radians(NEW.
+    linklat))*pow(sin((radians(NEW.linklon)-radians(NEW.nodelon))/2),2)))*6371,2);
+
+
+    END//
+
+    DELIMITER ;
+
+    SET SQL_MODE=@OLDTMP_SQL_MODE;
+
+
+    /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+
+    /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1,
+    @OLD_FOREIGN_KEY_CHECKS) */;
+
+    /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meshmap-sql
+  labels:
+    app: meshmap
+    tier: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meshmap
+      tier: database
+  template:
+    metadata:
+      labels:
+        app: meshmap
+        tier: database
+    spec:
+      containers:
+      - name: meshmap-sql
+        image: mariadb
+        volumeMounts:
+        - name: data-dir
+          mountPath: /var/lib/mysql
+        - name: sql-init
+          mountPath: /docker-entrypoint-initdb.d
+        ports:
+          - containerPort: 3306
+        env:
+        - name: MARIADB_RANDOM_ROOT_PASSWORD
+          value: "true"
+        - name: MARIADB_DATABASE
+          value: node_map
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: meshmap-db-credentials
+              key: username
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: meshmap-db-credentials
+              key: password
+      volumes:
+      - name: data-dir
+        persistentVolumeClaim:
+          claimName: meshmap-sql-datadir
+      - name: sql-init
+        configMap:
+          name: meshmap-sql-init
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: meshmap-sql-datadir
+  labels:
+    app: meshmap
+    tier: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meshmap-sql
+  labels:
+    app: meshmap
+    tier: database
+spec:
+  ports:
+    - name: mariadb
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+  selector:
+    app: meshmap
+    tier: database
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: meshmap-settings
+  labels:
+    app: meshmap
+    tier: application
+data:
+  meshmap-settings.ini: |
+    [meshmap-settings]
+    ; Mesh Node Markers
+    Device_Default = 'images/mapMarkers/greenRadioCircle-icon.png';
+    Device_Linux = 'images/mapMarkers/linux.png';
+    Device_900MHz = 'images/mapMarkers/magentaRadioCircle-icon.png';
+    Device_24GHz = 'images/mapMarkers/purpleRadioCircle-icon.png';
+    Device_3GHz = 'images/mapMarkers/blueRadioCircle-icon.png';
+    Device_5GHz = 'images/mapMarkers/goldRadioCircle-icon.png';
+    Device_Unknown = 'images/mapMarkers/greyRadioCircle-icon.png';
+    ; Software Versions
+    Device_OOD = 'images/mapMarkers/redCircle.png';
+    Device_Experimental = 'images/mapMarkers/orangeCircle.png';
+    ; Link colours
+    ; Colours are also control in webpage/css/meshmap.css
+    ; DTD_Link_Plus = "steelblue";
+    DTD_Link_Plus = "#808080";
+    DTD_Link_Minus = "#A020F0";
+    ; Link_Tunnel = "lightblue";
+    Link_Tunnel = "#808080";
+    Link_Infinite = "black";
+    Link_GOOD = "#00FF00";
+    Link_BAD = "#00FF00";
+    ; Additional Markers
+    Marker_Police ='images/mapMarkers/police.png';
+    Marker_Fire ='images/mapMarkers/fire.png';
+    Marker_Hospital='images/mapMarkers/hospital.png';
+    Marker_EOC ='images/mapMarkers/EOC.png';
+    Marker_Operator ='images/mapMarkers/operator.png';
+    Marker_Future ='images/mapMarkers/Red_Marker.png';
+  user-settings.ini: |
+    [user-settings]
+    ;-------------------------------------------------------------
+    ; Please change the below variables for your setup.
+    ;
+    ; For instance, if your on the USA east coast, your "localTimeZone" should
+    ; be changed to: "America/New_York"
+    ;
+    ; You want to make your changes in between the quotes,
+    ;
+    ; Each section has comments that should explain what they are for.
+    ;-------------------------------------------------------------
+
+    ; SQL username, password, database name, table names.
+    ;
+    ; *** DO NOT MOLEST THE SQL USER AND PASSWORD THEY WILL BE REPLACED ***
+    ; *** WITH A KUBERNETES SECRET                                      ***
+    ; You probably do not want to (and should not) change the sql_db*
+    ; entries unless you really know what you are doing!
+    ;-------------------------------------------------------------
+    sql_user = "mesh-map"
+    sql_passwd = "mesh-map_sql_user_password"
+    sql_server = "meshmap-sql"
+    sql_db = "node_map"
+    sql_db_tbl = "node_info"
+    sql_db_tbl_node = "node_info"
+    sql_db_tbl_topo = "topology"
+    sql_db_tbl_marker = "marker_info"
+
+    ; Your localnode's IP address or hostname
+    ;
+    ; The system running the get-map-info.php script should be able to resolve
+    ; the host name.
+    ; If it cannot, you'll need to change this to an IP address.
+    ; Just leave it set at "localnode.local.mesh" unless you need to change it.
+    ;--------------------------------------------------------------
+    localnode = "10.34.233.249"
+
+    ; Current firmware version.
+    ;
+    ; (this will have to be edited by hand each time it changes)
+    ; Sorry, no way around that yet.
+    ;--------------------------------------------------------------
+    current_stable_fw_version = "3.21.4.0"
+
+    ; Time Zone we're going to be running in.
+    ;
+    ; It must be in "PHP Format". Sorry. :)
+    ; Please see: http://php.net/manual/en/timezones.php
+    ; If you need to change it, you can find it there.
+    ;--------------------------------------------------------------
+    localTimeZone = "UTC"
+
+    ; How often would you like the script sections to run? (in minutes)
+    ;
+    ; node_polling_interval controls how often the scripts go out across the mesh to poll each node
+    ; Node polling uses mesh resources and really should not be done all that often.
+    ; More than once an hour is probably overkill, unless it's needed for a big build out or something.
+    ;--------------------------------------------------------------
+    node_polling_interval = "61"
+
+    ; link_interval controls how often we update the link info
+    ;
+    ; Getting the link info *does not* really use mesh resources, we just ask our localnode for the info.
+    ; In other words this part could be made to operate in pretty much realtime, but you probably should not do that.
+    ; 5 minutes seems like a good setting here.
+    ;--------------------------------------------------------------
+    link_update_interval = "5"
+
+    ; There is another, new, aspect to node polling, it can be run in parallel.
+    ; a separate php script is spawned for each node on the network,
+    ; this runs much faster time wise, but you lose the ability to see what the node polling script is doing.
+    ; it probably doesn't use more resources than doing it sequetially, it just does it all in one big burst.
+    ; this does make the link lines take a bit longer properly to build in the database,
+    ; as sometimes the info is just not there yet. over time this seems to work itself out.
+    ; All this is being worked on, but for now, turn the parallelism on or off here
+    ;--------------------------------------------------------------
+    node_polling_parallel = "0"
+    numParallelThreads = "8"
+
+    ; Map Center Coordinates and starting zoom level
+    ;
+    ; These are the coordinates for the center of the map on the webpage, and the initial Zoom Level.
+    ; This will probably take some experimenting to get just right.
+    ; These values are for NH6Z's QTH in Lebanon
+    ;--------------------------------------------------------------
+    map_center_coordinates = "44.530288, -122.894726"
+    map_initial_zoom_level = "10"
+
+    ; Prefer Kilometers over Miles?
+    ;
+    ; change to 1 to flip the preference
+    ; the map page will then show 1km (1.62mi)
+    kilometers = "0"
+
+    ; If you have map tiles or a mesh tile server of your own (or on your mesh network) put it here.
+    ;
+    ; these map tiles will be used when there is no internet access available
+    ; if you use a directory name, it must be relative to the webroot.
+    ; ie: osm_tiles/{z}/{x}/{y}.png
+    ;
+    ; You can also use a full domain name here.
+    ; ie: //kg6wxc-srv.local.mesh/osm_tiles/{z}/{x}/{y}.png
+    ;
+    ; (z = zoom level, and x,y are x and y coords of the tile)
+    ; Most map tile servers (and many programs such as Xastir) conform to this default.
+    ;--------------------------------------------------------------
+    offlineMapTileDir = "//nh6z-tiles.local.mesh/osm_tiles/{z}/{x}/{y}.png"
+
+    ;; Internet Map Tile servers you wish to use
+    ; These will be using in place of the offline maps when internet access is available
+    ; If you wish to add more, just create a new line in the same fashion.
+    ; ie: inetTileServer['Name of Map'] = "//new.server.name/tiles/blah/blah/{z}/{x}/{y}.png"
+    ; You could add them to your hearts content! Try not to go overboard. :)
+    ;
+    ; Append the string "-Default" to the name of the map you'd like to have shown by default
+    ;
+    ; You must include the /{z}/{x}/{y}.png here, but make sure your using the right one
+    ; for the server you are using. "/{z}/{x}/{y}.png" is just an example
+    ;--------------------------------------------------------------
+    inetTileServer['Topographic'] = "//{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+    inetTileServer['Street'] = "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    inetTileServer['Terrain'] = "//stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg"
+    inetTileServer['NH6Z OSM-Default'] = "//tiles.nh6z.net/osm_tiles/{z}/{x}/{y}.png"
+
+    ;; The Title of the web page, web page logo and the text above the map.
+    ;--------------------------------------------------------------
+    pageTitle = "NH6Z Mesh Map"
+    ; pageLogo = "images/MESHMAP_LOGO.svg"
+    ; logoHeaderText = "Mesh Map"
+
+    ;; Welcome to the Mesh Map Message
+    ; uncomment and edit the "otherTopOfMapMsg" below if you want to add other text above the map
+    ;--------------------------------------------------------------
+    ; welcomeMessage\t=\t"Welcome to the Mesh Map"
+    ; otherTopOfMapMsg = ""
+
+    ;; Custom message if you are on the Mesh Server
+    ;--------------------------------------------------------------
+    ; meshServerText = "You are connected to the Mesh Network and running on device: %s"
+
+    ;; Custom Message if you are on the Internet Server
+    ;--------------------------------------------------------------
+    ; inetServerText = "Your are connected to the internet and are running on device: %s"
+
+    ;; Custom Mesh Warning message
+    ; uncomment and edit to enable
+    ;--------------------------------------------------------------
+    ; meshWarning\t=\t""
+
+    ;; Node expiration intervals
+    ; after how many *days* do nodes get removed when we have not heard from them?
+    ; if the same node re-appears after this time it will get automatically removed from the ignore list,
+    ; and will continue to be updated as normal.
+    ; Set expire_old_nodes to "1" to actually expire the old nodes. "0" will not expire any nodes.
+    ;--------------------------------------------------------------
+    node_expire_interval = "30"
+    expire_old_nodes = "1"
+
+    ;; How many *hours* to ignore hosts that give us a 404 error when asking for the json files
+    ; a "404 error" from the node usually indicates it is running really old firmware.
+    ; this allows the script to only check these nodes once a day, and not waste time.
+    ; hopefully the owner will update one of these days. :)
+    ;--------------------------------------------------------------
+    error404_expire_interval = "26"
+
+    ;; How many *minutes* to ignore nodes that give us a "no route to host" error
+    ; these may be temporary errors and should not be ignored long
+    ;--------------------------------------------------------------
+    errorNoRoute_expire_interval = "90"
+
+    ;; How many *minutes* to ignore nodes that give us a "connection refused" error
+    ; these can also be quite temporary, like when olsrd happens to be restarting or something
+    ;--------------------------------------------------------------
+    errorRefused_expire_interval = "90"
+
+    ;; The map has the ability to tell what host it is running on.
+    ; Things can change accordingly. Say you want the map on the mesh?
+    ; You'll need offline map files and to use offline js add-on scripts.
+    ; If your system can be accessed by both the mesh and the internet,
+    ; this may come in handy.
+    ; Just set these next three variables accodingly, if unsure leave them.
+    ;--------------------------------------------------------------
+    meshServerHostName = "nh6z-meshmap.local.mesh"
+    inetServerHostname = "meshmap.nh6z.net"
+
+    ;; Values below control how the map is displayed in map_display.php
+    ;--------------------------------------------------------------
+    ; Map size
+    ; 0 = display the map in full screen.
+    ; 1 = display the map in an iFrame.
+    map_iFrame_Enabled = "0"
+
+    ;; Outerrors in "silent" mode (cron jobs)
+    ; leave set to "0" for now (3-29-19)
+    errorsInCron = "0"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meshmap-php
+  labels:
+    app: meshmap
+    tier: application
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: meshmap
+      tier: application
+  template:
+    metadata:
+      labels:
+        app: meshmap
+        tier: application
+    spec:
+      containers:
+      - name: meshmap-php
+        image: mcdermj/meshmap-php-fpm
+        volumeMounts:
+        - name: meshmap-settings
+          mountPath: /config
+        ports:
+          - containerPort: 9000
+        env:
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: meshmap-db-credentials
+              key: username
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: meshmap-db-credentials
+              key: password
+      volumes:
+      - name: meshmap-settings
+        configMap:
+          name: meshmap-settings
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meshmap-php
+  labels:
+    app: meshmap
+    tier: application
+spec:
+  ports:
+    - name: php-fpm
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+  selector:
+    app: meshmap
+    tier: application
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meshmap-nginx
+  labels:
+    app: meshmap
+    tier: webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meshmap
+      tier: webserver
+  template:
+    metadata:
+      labels:
+        app: meshmap
+        tier: webserver
+    spec:
+      containers:
+      - name: meshmap-php
+        image: mcdermj/meshmap-nginx
+        ports:
+          - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meshmap-nginx
+  labels:
+    app: meshmap
+    tier: webserver
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: meshmap
+    tier: webserver
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: meshmap-ingress
+  labels:
+    app: meshmap
+    tier: webserver
+spec:
+  rules:
+    - host: nh6z-meshmap.local.mesh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: meshmap-nginx
+                port:
+                  number: 80
+    - host: meshmap.nh6z.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: meshmap-nginx
+                port:
+                  number: 80
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: meshmap-updater
+  labels:
+    app: meshmap
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: meshmap-updater
+            image: mcdermj/meshmap-php-fpm
+            command: [ "/init.sh" ]
+            args: [ "update" ]
+            volumeMounts:
+            - name: meshmap-settings
+              mountPath: /config
+            env:
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: meshmap-db-credentials
+                  key: username
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: meshmap-db-credentials
+                  key: password
+          volumes:
+          - name: meshmap-settings
+            configMap:
+              name: meshmap-settings
