@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openwebrx-settings
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opnewebrx
+  labels:
+    app: openwebrx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openwebrx
+  template:
+    metadata:
+      labels:
+        app: openwebrx
+    spec:
+      containers:
+      - name: openwebrx
+        image: jketterl/openwebrx:stable
+        volumeMounts:
+        - name: openwebrx-settings
+          mountPath: /var/lib/openwebrx
+        ports:
+          - containerPort: 8073
+        env:
+        - name: OPENWEBRX_ADMIN_USER
+          value: amcdermond
+        - name: OPENWEBRX_ADMIN_PASSWORD
+          value: foobar
+      volumes:
+      - name: openwebrx-settings
+        persistentVolumeClaim:
+          claimName: openwebrx-settings
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openwebrx
+  labels:
+    app: openwebrx
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8073
+      targetPort: 8073
+  selector:
+    app: openwebrx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openwebrx-ingress
+spec:
+  rules:
+    - host: nh6z-webrx.local.mesh
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: openwebrx
+              port:
+                number: 8073
